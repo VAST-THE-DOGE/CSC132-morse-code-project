@@ -13,7 +13,7 @@ def find(SENSOR, TimeToTest):
             while GPIO.input(SENSOR) == True:
                 pass
             EndTime = time()
-            TimeOn = EndTime - StartTime
+            return EndTime - StartTime
         i += 1
 
 print(find(SENSOR, TimeToTest))
