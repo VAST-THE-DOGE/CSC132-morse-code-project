@@ -1,7 +1,7 @@
 #recieve
 from time import time
 import RPi.GPIO as GPIO
-SENSOR = 0 #GPIIO PIN HERE
+SENSOR = 0 #GPIO PIN HERE
 TimeToTest = 20
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
