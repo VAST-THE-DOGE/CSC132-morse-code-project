@@ -11,3 +11,4 @@ while True:
       pass
     EndTime = time()
     TimeOn = EndTime - StartTime
+    print(TimeOn)
