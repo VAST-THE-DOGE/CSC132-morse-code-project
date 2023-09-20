@@ -50,20 +50,6 @@ class MainGUI(Frame):
         self.qb4.grid(row=7, column=4, sticky=E+W+N+S)
         self.qb5 = Button(self, anchor=N, text="GOODBYE", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("GOODBYE"))
         self.qb5.grid(row=7, column=5, sticky=E+W+N+S)
-        #self.qb6 = Button(self, anchor=N, text="-", bg="grey", font=("TexGyreAdventor", 45))
-        #self.qb6.grid(row=6, column=6, sticky=E+W+N+S)
-        #self.qb7 = Button(self, anchor=N, text="-", bg="grey", font=("TexGyreAdventor", 45))
-        #self.qb7.grid(row=6, column=7, sticky=E+W+N+S)
-        #self.qb8 = Button(self, anchor=N, text="-", bg="grey", font=("TexGyreAdventor", 45))
-        #self.qb8.grid(row=6, column=8, sticky=E+W+N+S)
-
-        #details
-        #self.bg1 = Label(self, bg="grey")
-        #self.bg1.grid(row=1, column=9, rowspan=8, sticky=E+W+N+S)
-        #self.bg2 = Label(self, bg="grey")
-        #self.bg2.grid(row=0, column=0, columnspan=9, sticky=E+W+N+S)
-        #self.bg3 = Label(self, bg="lightgrey")
-        #self.bg3.grid(row=1, column=7, sticky=E+W+N+S)
         if DEBUG: print("--END--"), print("--setupGUI--")
 
     def send(self, sendInfo):
