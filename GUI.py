@@ -1,8 +1,9 @@
 #settings
 FULLSCREEN = True
-DEBUG = False
+DEBUG = True
 
-
+N_ALPHABET = [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+MC_ALPHABET = ['^', '.-', '-...', '-.-.', '-..', '.', '..-.', '--.', '....', '..', '.---', '-.-', '.-..', '--', '-.', '---', '.--.', '--.-', '.-.', '...', '-', '..-', '...-', '.--', '-..-', '-.--', '--.']
 from tkinter import *
 class MainGUI(Frame):
     def __init__(self, parent):
@@ -11,6 +12,7 @@ class MainGUI(Frame):
             parent.attributes("-fullscreen", True)
         self.setupGUI()
     def setupGUI(self):
+        if DEBUG: print("--setupGUI--"), print("--START--")
         for row in range(9): #setup the rows and columns
             Grid.rowconfigure(self, row, weight=1)
         for col in range(8):
@@ -22,7 +24,7 @@ class MainGUI(Frame):
         self.eb = Button(self, anchor=N+E, text="X", bg="red", font=("TexGyreAdventor", 45))
         self.eb.grid(row=0, column=9, sticky=E+W+N+S)
         #translate button
-        self.tb = Button(self, anchor=N, text="Translate", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
+        self.tb = Button(self, anchor=N, text="Send", bg="green", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
         self.tb.grid(row=1, column=8, sticky=E+W+N+S)
         #record button
         self.rb = Button(self, anchor=N, text="Record", bg="red", font=("TexGyreAdventor", 45))
@@ -60,14 +62,48 @@ class MainGUI(Frame):
         #self.bg1.grid(row=1, column=9, rowspan=8, sticky=E+W+N+S)
         #self.bg2 = Label(self, bg="grey")
         #self.bg2.grid(row=0, column=0, columnspan=9, sticky=E+W+N+S)
-        self.bg3 = Label(self, bg="lightgrey")
-        self.bg3.grid(row=1, column=7, sticky=E+W+N+S)
+        #self.bg3 = Label(self, bg="lightgrey")
+        #self.bg3.grid(row=1, column=7, sticky=E+W+N+S)
+        if DEBUG: print("--END--"), print("--setupGUI--")
 
     def send(self, sendInfo):
-        print(sendInfo)
-        self.ow.config(text=sendInfo)
+        if DEBUG: print("----send----"), print("----START----")
+        self.ow.config(text= ("translating: " + sendInfo + "\n sending: " + ENGtoMC(sendInfo)))
+        if DEBUG: print("----END----"), print("----send----")
 
+def ENGtoMC(string):
+    if DEBUG: print("--ENGtoMC--"), print("--START--")
+    backupString = string #create a backup
+    string = string.lower() #set all to lowercase to keep it the same.
+    #remove symbols that will create errors, the rest will be ignored.
+    string = string.replace("^", "") #seperator for words!
+    string = string.replace("/", "") #seperator for letters!
+    string = string.replace(".", "") #part of morse code!
+    string = string.replace("-", "") #part of morse code!
+    #end of removing
+    if string == "": return backupString #this is if the user types morse code already
+    else:
+        del backupString
+        for index in range(0 ,len(N_ALPHABET)): #replace the letters.
+            if DEBUG: print("replace '{}' with '{}'".format(N_ALPHABET[index], (MC_ALPHABET[index] + "/")))
+            string = string.replace(N_ALPHABET[index], (MC_ALPHABET[index] + "/"))
+    if DEBUG: print("--END--"), print("--ENGtoMC--")
+    return string
+
+def MCtoENG(string):
+    if DEBUG: print("--MCtoENG--"), print("--START--")
+    letters = string.split("/") #make the string into a list
+    for index in range(0 ,len(letters)):
+        replaceWithIndex = MC_ALPHABET.index(letters[index]) #find the MC index of the letter
+        letters[index] = N_ALPHABET[replaceWithIndex] #replace the letter using this index with the normal alphabet
+        if DEBUG: print("replace '{}' with '{}'".format((letters[index] + "/"), N_ALPHABET[replaceWithIndex]))
+    string = "".join(letters) #make the list into a string
+    if DEBUG: print("--END--"), print("--MCtoENG--")
+    return string
+
+if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
 p = MainGUI(window)
 window.mainloop()
+if DEBUG: print("-----END-----"), print("-----main-----")
 
