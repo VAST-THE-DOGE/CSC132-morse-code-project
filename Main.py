@@ -1,9 +1,39 @@
-#settings
+#Settings
 FULLSCREEN = True
 DEBUG = True
+#GPIO Stuff
+SENSOR = 0 #GPIO PIN OF THE SENSOR
+RED_LED = 0 #GPIO PIN OF THE RED LED
+IR_LED = 0 #GPIO PIN OF THE IR LED
+try:
+    if DEBUG: print("--setupGPIO--"), print("--START--")
+    import RPi.GPIO as GPIO
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(RED_LED, GPIO.OUT)
+    GPIO.setup(IR_LED, GPIO.OUT)
+    if DEBUG: print("--END--"), print("--setupGPIO--")
+    GPIO_ACTIVE = True
+except:
+    GPIO_ACTIVE = False
+    if DEBUG: print("--!!FAILED_TO_SETUP!!--"), print("--setupGPIO--")
 
+
+#KEEP THIS THE SAME!
 N_ALPHABET = [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-MC_ALPHABET = ['^', '.-', '-...', '-.-.', '-..', '.', '..-.', '--.', '....', '..', '.---', '-.-', '.-..', '--', '-.', '---', '.--.', '--.-', '.-.', '...', '-', '..-', '...-', '.--', '-..-', '-.--', '--.']
+MC_ALPHABET = ['^ ', '. - ', '- . . . ', '- . - . ', '- . . ', '. ', '. . - . ', '- - . ', '. . . . ', '. . ', '. - - - ', '- . - ', '. - . . ', '- - ', '- . ', '- - - ', '. - - . ', '- - . - ', '. - . ', '. . . ', '- ', '. . - ', '. . . - ', '. - - ', '- . . - ', '- . - - ', '- - . ']
+
+if GPIO_ACTIVE:
+    if DEBUG: print("--setupGPIO--"), print("--START--")
+    from time import sleep 
+    import RPi.GPIO as GPIO
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(RED_LED, GPIO.OUT)
+    GPIO.setup(IR_LED, GPIO.OUT)
+    if DEBUG: print("--END--"), print("--setupGPIO--")
+from time import sleep
+from time import time
 from tkinter import *
 class MainGUI(Frame):
     def __init__(self, parent):
@@ -54,7 +84,40 @@ class MainGUI(Frame):
 
     def send(self, sendInfo):
         if DEBUG: print("----send----"), print("----START----")
-        self.ow.config(text= ("translating: " + sendInfo + "\n sending: " + ENGtoMC(sendInfo)))
+        newSendInfo = ENGtoMC(sendInfo)
+        if GPIO_ACTIVE:
+            if DEBUG: print("---GPIO_IS_ON---")
+            self.ow.config(text=("translating: " + sendInfo + "\n sending: " + newSendInfo))
+            newSendInfo = newSendInfo.split()
+            for value in newSendInfo: #############################################################
+#A dot lasts for one second.
+#A dash lasts for three seconds. 
+#The space between dots and dashes that are part of the same letter is one second.
+#The space between different letters is three seconds.
+#The space between different words is seven seconds.
+                if value == ".": 
+                    GPIO.output(RED_LED, True)
+                    GPIO.output(IR_LED, True)
+                    sleep(1)
+                    GPIO.output(RED_LED, False)
+                    GPIO.output(IR_LED, False)
+                    sleep(1)
+                elif value == "-": 
+                    GPIO.output(RED_LED, True)
+                    GPIO.output(IR_LED, True)
+                    sleep(3)
+                    GPIO.output(RED_LED, False)
+                    GPIO.output(IR_LED, False)
+                    sleep(1)
+                elif value == "/": #end of - or . is 1 second + 2 = 3
+                    sleep(2)
+                elif value == "^": #end of - or . is 1 second + 4 + 2 seconds from the / after = 7
+                    sleep(4)
+                else:
+                    if DEBUG: print("--UNKNOWN_INPUT--"), print("'{}' WILL NOT SEND!")
+        else:
+            if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
+            self.ow.config(text=("translating: " + sendInfo + "\n sending: " + newSendInfo + "\n GPIO IS OFF! THIS WILL NOT SEND!!!"))
         if DEBUG: print("----END----"), print("----send----")
 
 def ENGtoMC(string):
@@ -71,8 +134,8 @@ def ENGtoMC(string):
     else:
         del backupString
         for index in range(0 ,len(N_ALPHABET)): #replace the letters.
-            if DEBUG: print("replace '{}' with '{}'".format(N_ALPHABET[index], (MC_ALPHABET[index] + "/")))
-            string = string.replace(N_ALPHABET[index], (MC_ALPHABET[index] + "/"))
+            if DEBUG: print("replace '{}' with '{}'".format(N_ALPHABET[index], (MC_ALPHABET[index] + "/ ")))
+            string = string.replace(N_ALPHABET[index], (MC_ALPHABET[index] + "/ "))
     if DEBUG: print("--END--"), print("--ENGtoMC--")
     return string
 
@@ -82,10 +145,14 @@ def MCtoENG(string):
     for index in range(0 ,len(letters)):
         replaceWithIndex = MC_ALPHABET.index(letters[index]) #find the MC index of the letter
         letters[index] = N_ALPHABET[replaceWithIndex] #replace the letter using this index with the normal alphabet
-        if DEBUG: print("replace '{}' with '{}'".format((letters[index] + "/"), N_ALPHABET[replaceWithIndex]))
+        if DEBUG: print("replace '{}' with '{}'".format((letters[index] + "/ "), N_ALPHABET[replaceWithIndex]))
     string = "".join(letters) #make the list into a string
     if DEBUG: print("--END--"), print("--MCtoENG--")
     return string
+
+def Record():
+    if DEBUG: print("WIP")
+
 
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
