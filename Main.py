@@ -1,8 +1,21 @@
+#imports
+from time import sleep
+from time import time
+from tkinter import *
+import sys
+import os
 #Settings
 FULLSCREEN = True
 DEBUG = True
 SHUTDOWN = False
 SEND_SPEED = 0.1
+#get the system color
+#wip
+COLOR = True #True = light mode; False = dark mode
+if COLOR:
+    pass
+else:
+    pass
 #GPIO Stuff
 SENSOR = 0 #GPIO PIN OF THE SENSOR
 RED_LED = 0 #GPIO PIN OF THE RED LED
@@ -35,9 +48,7 @@ if GPIO_ACTIVE:
     GPIO.setup(RED_LED, GPIO.OUT)
     GPIO.setup(IR_LED, GPIO.OUT)
     if DEBUG: print("--END--"), print("--setupGPIO--")
-from time import sleep
-from time import time
-from tkinter import *
+
 class MainGUI(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
@@ -45,43 +56,51 @@ class MainGUI(Frame):
         self.setupGUI()
     def setupGUI(self):
         if DEBUG: print("--setupGUI--"), print("--START--")
-        for row in range(9): #setup the rows and columns
+        self.update_idletasks() # update the window state
+        width = self.winfo_screenwidth() # get the window width
+        height = self.winfo_screenheight() # get the window height
+        print(width)
+        print(height)
+        width //= 8
+        height //= 9
+
+        for row in range(9*height): #setup the rows and columns
             Grid.rowconfigure(self, row, weight=1)
-        for col in range(8):
+        for col in range(8*width):
             Grid.columnconfigure(self, col, weight=1)
-
+        self.config(bg="light grey")
         self.pack(fill=BOTH, expand=1)
-
+        
         #exit button
-        self.eb = Button(self, anchor=N+E, text="X", bg="red", command=lambda: end(GPIO_ACTIVE), font=("TexGyreAdventor", 45))
-        self.eb.grid(row=0, column=9, sticky=E+W+N+S)
+        self.eb = Button(self, text="X", bg="red", command=lambda: end(GPIO_ACTIVE), font=("TexGyreAdventor", 30))
+        self.eb.grid(row=0*height, column=9*width, sticky=E+W+N+S, padx=5, pady=5)
         #translate button
-        self.tb = Button(self, anchor=N, text="Send", bg="green", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
-        self.tb.grid(row=1, column=8, sticky=E+W+N+S)
+        self.tb = Button(self,  text="Send", bg="green", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
+        self.tb.grid(row=1*height, column=8*width, sticky=E+W+N+S, padx=5, pady=5)
         #record button
-        self.rb = Button(self, anchor=N, text="Record", bg="red", font=("TexGyreAdventor", 45))
-        self.rb.grid(row=3, column=7, rowspan=2, columnspan=2, sticky=E+W+N+S)
+        self.rb = Button(self,  text="Record", bg="orange", font=("TexGyreAdventor", 45))
+        self.rb.grid(row=3*height, column=7*width, rowspan=2*height, columnspan=2*width, sticky=E+W+N+S, padx=5, pady=5)
         #user input window
         self.uiw = Entry(self, bg="white", font=("TexGyreAdventor", 45))
-        self.uiw.grid(row=1, column=1, columnspan=6, sticky=E+W+N+S)
+        self.uiw.grid(row=1*height, column=1*width, columnspan=6*width, sticky=E+W+N+S, padx=5, pady=5)
         #output window
-        self.ow = Label(self, text="W.I.P.", anchor=W, bg="white", height=1, font=("TexGyreAdventor", 30))
-        self.ow.grid(row=3, column=1, rowspan=2, columnspan=5, sticky=E+W+N+S)
+        self.ow = Label(self, text="W.I.P.", anchor=N+W, bg="white", height=1, font=("TexGyreAdventor", 30))
+        self.ow.grid(row=3*height, column=1*width, rowspan=2*height, columnspan=5*width, sticky=E+W+N+S, padx=5, pady=5)
 
         ###############
         #quick buttons#
         ###############
 
-        self.qb1 = Button(self, anchor=N, text="SOS", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("SOS"))
-        self.qb1.grid(row=7, column=1, sticky=E+W+N+S)
-        self.qb2 = Button(self, anchor=N, text="YES", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("YES"))
-        self.qb2.grid(row=7, column=2, sticky=E+W+N+S)
-        self.qb3 = Button(self, anchor=N, text="NO", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("NO"))
-        self.qb3.grid(row=7, column=3, sticky=E+W+N+S)
-        self.qb4 = Button(self, anchor=N, text="HELLO", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("HELLO"))
-        self.qb4.grid(row=7, column=4, sticky=E+W+N+S)
-        self.qb5 = Button(self, anchor=N, text="GOODBYE", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("GOODBYE"))
-        self.qb5.grid(row=7, column=5, sticky=E+W+N+S)
+        self.qb1 = Button(self, text="SOS", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("SOS"))
+        self.qb1.grid(row=7*height, column=1*width, sticky=E+W+N+S, padx=5, pady=5)
+        self.qb2 = Button(self, text="YES", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("YES"))
+        self.qb2.grid(row=7*height, column=2*width, sticky=E+W+N+S, padx=5, pady=5)
+        self.qb3 = Button(self, text="NO", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("NO"))
+        self.qb3.grid(row=7*height, column=3*width, sticky=E+W+N+S, padx=5, pady=5)
+        self.qb4 = Button(self, text="HELLO", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("HELLO"))
+        self.qb4.grid(row=7*height, column=4*width, sticky=E+W+N+S, padx=5, pady=5)
+        self.qb5 = Button(self, text="GOODBYE", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("GOODBYE"))
+        self.qb5.grid(row=7*height, column=5*width, sticky=E+W+N+S, padx=5, pady=5)
         if DEBUG: print("--END--"), print("--setupGUI--")
 
     def send(self, sendInfo):
@@ -157,8 +176,6 @@ def Record():
     if DEBUG: print("WIP")
 
 def end(GPIO_ACTIVE):
-    import sys
-    import os
     window.attributes("-fullscreen", False)
     if GPIO_ACTIVE and SHUTDOWN: os.system ("sudo shutdown -h now")
     #sys.exit(0)
@@ -166,6 +183,8 @@ def end(GPIO_ACTIVE):
 
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
+window.title("Morse COde Translator")
+
 p = MainGUI(window)
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
