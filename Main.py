@@ -2,10 +2,12 @@
 FULLSCREEN = True
 DEBUG = True
 SEND_SPEED = 0.1
-#GPIO Stuff 
+#GPIO Stuff
 SENSOR = 0 #GPIO PIN OF THE SENSOR
 RED_LED = 0 #GPIO PIN OF THE RED LED
 IR_LED = 0 #GPIO PIN OF THE IR LED
+
+
 try:
     if DEBUG: print("--setupGPIO--"), print("--START--")
     import RPi.GPIO as GPIO
@@ -19,14 +21,13 @@ except:
     GPIO_ACTIVE = False
     if DEBUG: print("--!!FAILED_TO_SETUP!!--"), print("--setupGPIO--")
 
-
 #KEEP THIS THE SAME!
 N_ALPHABET = [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 MC_ALPHABET = ['^ ', '. - ', '- . . . ', '- . - . ', '- . . ', '. ', '. . - . ', '- - . ', '. . . . ', '. . ', '. - - - ', '- . - ', '. - . . ', '- - ', '- . ', '- - - ', '. - - . ', '- - . - ', '. - . ', '. . . ', '- ', '. . - ', '. . . - ', '. - - ', '- . . - ', '- . - - ', '- - . ']
 
 if GPIO_ACTIVE:
     if DEBUG: print("--setupGPIO--"), print("--START--")
-    from time import sleep 
+    from time import sleep
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -39,8 +40,7 @@ from tkinter import *
 class MainGUI(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
-        if FULLSCREEN:
-            parent.attributes("-fullscreen", True)
+        if FULLSCREEN: parent.attributes("-fullscreen", True)
         self.setupGUI()
     def setupGUI(self):
         if DEBUG: print("--setupGUI--"), print("--START--")
@@ -52,7 +52,7 @@ class MainGUI(Frame):
         self.pack(fill=BOTH, expand=1)
 
         #exit button
-        self.eb = Button(self, anchor=N+E, text="X", bg="red", font=("TexGyreAdventor", 45))
+        self.eb = Button(self, anchor=N+E, text="X", bg="red", command=lambda: quit(GPIO_ACTIVE), font=("TexGyreAdventor", 45))
         self.eb.grid(row=0, column=9, sticky=E+W+N+S)
         #translate button
         self.tb = Button(self, anchor=N, text="Send", bg="green", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
@@ -104,7 +104,7 @@ class MainGUI(Frame):
                     GPIO.output(RED_LED, False)
                     GPIO.output(IR_LED, False)
                     sleep(SEND_SPEED)
-                elif value == "-": 
+                elif value == "-":
                     GPIO.output(RED_LED, True)
                     GPIO.output(IR_LED, True)
                     sleep(3 * SEND_SPEED)
@@ -155,10 +155,14 @@ def MCtoENG(string):
 def Record():
     if DEBUG: print("WIP")
 
+def end(GPIO_ACTIVE):
+    import sys
+    import os
+    #if GPIO_ACTIVE: os.system ("sudo shutdown -h now")
+    sys.exit (0)
 
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
 p = MainGUI(window)
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
-    
