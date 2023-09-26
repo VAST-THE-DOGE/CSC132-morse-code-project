@@ -159,7 +159,7 @@ def end(GPIO_ACTIVE):
     import sys
     import os
     #if GPIO_ACTIVE: os.system ("sudo shutdown -h now")
-    sys.exit (0)
+    sys.exit(0)
 
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
