@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Morse Code Translator
+Exec=python3 /home/pi/CSCProjectTest.py
