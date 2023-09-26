@@ -1,6 +1,7 @@
 #Settings
 FULLSCREEN = True
 DEBUG = True
+SHUTDOWN = False
 SEND_SPEED = 0.1
 #GPIO Stuff
 SENSOR = 0 #GPIO PIN OF THE SENSOR
@@ -159,7 +160,7 @@ def end(GPIO_ACTIVE):
     import sys
     import os
     window.attributes("-fullscreen", False)
-    if GPIO_ACTIVE: os.system ("sudo shutdown -h now")
+    if GPIO_ACTIVE and SHUTDOWN: os.system ("sudo shutdown -h now")
     sys.exit(0)
 
 if DEBUG: print("-----main-----"), print("-----START-----")
