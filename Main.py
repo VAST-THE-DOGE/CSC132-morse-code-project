@@ -52,7 +52,7 @@ class MainGUI(Frame):
         self.pack(fill=BOTH, expand=1)
 
         #exit button
-        self.eb = Button(self, anchor=N+E, text="X", bg="red", command=lambda: quit(GPIO_ACTIVE), font=("TexGyreAdventor", 45))
+        self.eb = Button(self, anchor=N+E, text="X", bg="red", command=lambda: end(GPIO_ACTIVE), font=("TexGyreAdventor", 45))
         self.eb.grid(row=0, column=9, sticky=E+W+N+S)
         #translate button
         self.tb = Button(self, anchor=N, text="Send", bg="green", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
@@ -158,7 +158,8 @@ def Record():
 def end(GPIO_ACTIVE):
     import sys
     import os
-    #if GPIO_ACTIVE: os.system ("sudo shutdown -h now")
+    window.attributes("-fullscreen", False)
+    if GPIO_ACTIVE: os.system ("sudo shutdown -h now")
     sys.exit(0)
 
 if DEBUG: print("-----main-----"), print("-----START-----")
