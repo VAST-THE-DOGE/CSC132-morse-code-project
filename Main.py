@@ -1,7 +1,8 @@
 #Settings
 FULLSCREEN = True
 DEBUG = True
-#GPIO Stuff
+SEND_SPEED = 0.1
+#GPIO Stuff 
 SENSOR = 0 #GPIO PIN OF THE SENSOR
 RED_LED = 0 #GPIO PIN OF THE RED LED
 IR_LED = 0 #GPIO PIN OF THE IR LED
@@ -89,30 +90,31 @@ class MainGUI(Frame):
             if DEBUG: print("---GPIO_IS_ON---")
             self.ow.config(text=("translating: " + sendInfo + "\n sending: " + newSendInfo))
             newSendInfo = newSendInfo.split()
+            if DEBUG: print(newSendInfo)
             for value in newSendInfo: #############################################################
 #A dot lasts for one second.
 #A dash lasts for three seconds. 
 #The space between dots and dashes that are part of the same letter is one second.
 #The space between different letters is three seconds.
 #The space between different words is seven seconds.
-                if value == ".": 
+                if value == ".":
                     GPIO.output(RED_LED, True)
                     GPIO.output(IR_LED, True)
-                    sleep(1)
+                    sleep(SEND_SPEED)
                     GPIO.output(RED_LED, False)
                     GPIO.output(IR_LED, False)
-                    sleep(1)
+                    sleep(SEND_SPEED)
                 elif value == "-": 
                     GPIO.output(RED_LED, True)
                     GPIO.output(IR_LED, True)
-                    sleep(3)
+                    sleep(3 * SEND_SPEED)
                     GPIO.output(RED_LED, False)
                     GPIO.output(IR_LED, False)
-                    sleep(1)
+                    sleep(SEND_SPEED)
                 elif value == "/": #end of - or . is 1 second + 2 = 3
-                    sleep(2)
+                    sleep(2 * SEND_SPEED)
                 elif value == "^": #end of - or . is 1 second + 4 + 2 seconds from the / after = 7
-                    sleep(4)
+                    sleep(4 * SEND_SPEED)
                 else:
                     if DEBUG: print("--UNKNOWN_INPUT--"), print("'{}' WILL NOT SEND!")
         else:
@@ -159,3 +161,4 @@ window = Tk()
 p = MainGUI(window)
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
+    
