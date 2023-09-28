@@ -177,36 +177,36 @@ class MainGUI(Frame):
                     #-7#“//” to something: “-” -2.3333333... “.” -7 
                     #test
                     if currentSymbol == "/ " :
-                        if TimeDif in range(-2, 1):
+                        if TimeDif > -2 and TimeDif <= 1: 
                             currentSymbol = "- "
-                        elif TimeDif in range(-4, -2):
+                        elif TimeDif > -4 and TimeDif <= -2:
                             currentSymbol = ". "
                         else: #error
                             pass
                     elif currentSymbol == "^ / ":
-                        if TimeDif in range(-4.666666666666667, 1):
+                        if TimeDif > -4.666666666666667 and TimeDif <= 1:
                             currentSymbol = "- "
-                        elif TimeDif in range(-10, -4.666666666666667):
+                        elif TimeDif > -10 and TimeDif <= -4.666666666666667:
                             currentSymbol = ". "
                         else: #error
                             pass
                     else:
-                        if TimeDif in range(1.6666666666666667, 5): #-to. #3 #
+                        if TimeDif > 1.6666666666666667 and TimeDif <= 5: #-to. #3 #
                             if TimeNotFound: string = "- "; TimeNotFound = False
                             currentSymbol = ". "
-                        elif TimeDif in range(0.09523809523809523, 1.6666666666666667): #.to- #0.3333 #
+                        elif TimeDif > 0.09523809523809523 and TimeDif <= 1.6666666666666667: #.to- #0.3333 #
                             if TimeNotFound: string = ". "; TimeNotFound = False
                             currentSymbol = "- "
-                        elif TimeDif in range(-0.23809523809523808, 0.09523809523809523): #.to// #-0.1328 #
+                        elif TimeDif > -0.23809523809523808 and TimeDif <= 0.09523809523809523: #.to// #-0.1328 #
                             if TimeNotFound: string = ". "; TimeNotFound = False
                             currentSymbol = "^ / "
-                        elif TimeDif in range(-0.38095238095238093, -0.23809523809523808): #.to/ #-0.3333 #
+                        elif TimeDif > -0.38095238095238093 and TimeDif <= -0.23809523809523808: #.to/ #-0.3333 #
                             if TimeNotFound: string = ". "; TimeNotFound = False
                             currentSymbol = "/ "
-                        elif TimeDif in range(-0.7142857142857143, -0.38095238095238093): #-to// #-0.4285 #
+                        elif TimeDif > -0.7142857142857143 and TimeDif <= -0.38095238095238093: #-to// #-0.4285 #
                             if TimeNotFound: string = "- "; TimeNotFound = False
                             currentSymbol = "^ / "
-                        elif TimeDif in range(-2, -0.7142857142857143): #-to/ #-1 #
+                        elif TimeDif > -2 and TimeDif <= -0.7142857142857143: #-to/ #-1 #
                             if TimeNotFound: string = "- "; TimeNotFound = False
                             currentSymbol = "/ "
                         else: #error
@@ -278,6 +278,5 @@ p = MainGUI(window)
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
 
-p = MainGUI(window)
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
