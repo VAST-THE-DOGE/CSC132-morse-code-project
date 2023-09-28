@@ -78,7 +78,7 @@ class MainGUI(Frame):
         self.tb = Button(self,  text="Send", bg="green", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
         self.tb.grid(row=1*height, column=8*width, sticky=E+W+N+S, padx=5, pady=5)
         #record button
-        self.rb = Button(self,  text="Record", bg="orange", command=lambda: self.record(), font=("TexGyreAdventor", 45))
+        self.rb = Button(self,  text="Record", bg="orange", command=lambda: self.recordEND(self.record()), font=("TexGyreAdventor", 45))
         self.rb.grid(row=3*height, column=7*width, rowspan=2*height, columnspan=2*width, sticky=E+W+N+S, padx=5, pady=5)
         #user input window
         self.uiw = Entry(self, bg="white", font=("TexGyreAdventor", 45))
@@ -212,12 +212,12 @@ class MainGUI(Frame):
                         else: #error
                             pass
                     string += currentSymbol
-                            
+                          
         else:
             if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
             self.ow.config(text=("GPIO IS OFF! RECORDING IS OFFLINE!!!"))
+            return "GPIO IS OFF! RECORDING IS OFFLINE!!!"
 
-        if DEBUG: print("----END----"), print("----record----")
 
     def recordON(self, string):
         StartTime = time()
@@ -234,7 +234,10 @@ class MainGUI(Frame):
             if time() - StartTime < RECORD_IDLE_TIME: self.ow.config(text=("IDLE TIME: {}/{}\nCURRENT STRING: {}".format(time() - StartTime, RECORD_IDLE_TIME, string)))
             else: return -RECORD_IDLE_TIME
         return -(time() - StartTime)
-
+    def recordEND(self, string):
+        if string != "GPIO IS OFF! RECORDING IS OFFLINE!!!":
+            self.ow.config(text=("STRING: {}".format(MCtoENG(string))))
+        if DEBUG: print("----END----"), print("----record----")
 
 def ENGtoMC(string):
     if DEBUG: print("--ENGtoMC--"), print("--START--")
@@ -269,7 +272,11 @@ def end():
 
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
-window.title("Morse COde Translator")
+window.title("Morse Code Translator")
+
+p = MainGUI(window)
+window.mainloop()
+if DEBUG: print("-----END-----"), print("-----main-----")
 
 p = MainGUI(window)
 window.mainloop()
