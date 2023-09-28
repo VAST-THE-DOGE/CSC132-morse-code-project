@@ -211,6 +211,7 @@ class MainGUI(Frame):
                             currentSymbol = "/ "
                         else: #error
                             pass
+                        CurrentTime = Time
                     string += currentSymbol
                           
         else:
