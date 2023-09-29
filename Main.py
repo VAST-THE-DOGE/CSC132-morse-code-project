@@ -170,48 +170,42 @@ class MainGUI(Frame):
                     TimeNotFound = True
                 #else: find the time difference and find the next symbol
                 else:
-                    TimeDif = CurrentTime / Time
                     #1#“.” To something: “-” 0.33333... “/” -0.33333... “//” -0.1328571429 
                     #3#“-” to something:“//” -0.4285714286 “/” -1 “.” 3 
                     #-3#“/” to something: “-” -1 “.” -3 
                     #-7#“//” to something: “-” -2.3333333... “.” -7 
                     #test
-                    if currentSymbol == "/ " :
-                        if TimeDif > -2 and TimeDif <= 1: 
-                            currentSymbol = "- "
-                        elif TimeDif > -4 and TimeDif <= -2:
-                            currentSymbol = ". "
+                    if TimeNotFound: #only combos (# = space between symbols) = ".#", "./", and "-#"
+                        TimeDif = CurrentTime / Time
+                        if  TimeDif > -0.6666666666666666 and TimeDif <= 0: #.to/ -0.3333...
+                            string = ". "
+                            currentSymbol = "/ "
+                            SendSpeed = CurrentTime
+                        elif  TimeDif > -1.6666666666666667 and TimeDif <= -0.6666666666666666: #.to# -1.0 
+                            string = ". "
+                            currentSymbol = ""
+                            SendSpeed = CurrentTime
+                        elif  TimeDif > -4.5 and TimeDif <= -1.6666666666666667:#-to# -3.0
+                            string = "- "
+                            currentSymbol = ""
+                            SendSpeed = (Time * -1)
                         else: #error
                             pass
-                    elif currentSymbol == "^ / ":
-                        if TimeDif > -4.666666666666667 and TimeDif <= 1:
-                            currentSymbol = "- "
-                        elif TimeDif > -10 and TimeDif <= -4.666666666666667:
-                            currentSymbol = ". "
-                        else: #error
-                            pass
+                            
                     else:
-                        if TimeDif > 1.6666666666666667 and TimeDif <= 5: #-to. #3 #
-                            if TimeNotFound: string = "- "; TimeNotFound = False
-                            currentSymbol = ". "
-                        elif TimeDif > 0.09523809523809523 and TimeDif <= 1.6666666666666667: #.to- #0.3333 #
-                            if TimeNotFound: string = ". "; TimeNotFound = False
+                        Time /= SendSpeed
+                        if Time > 2 and TimeDif <= 5: #3 -
                             currentSymbol = "- "
-                        elif TimeDif > -0.23809523809523808 and TimeDif <= 0.09523809523809523: #.to// #-0.1328 #
-                            if TimeNotFound: string = ". "; TimeNotFound = False
-                            currentSymbol = "^ / "
-                        elif TimeDif > -0.38095238095238093 and TimeDif <= -0.23809523809523808: #.to/ #-0.3333 #
-                            if TimeNotFound: string = ". "; TimeNotFound = False
+                        elif Time > 0 and TimeDif <= 2: #1 .
+                            currentSymbol = ". "
+                        elif Time > -2 and TimeDif <= 0: #-1 None
+                            currentSymbol = ""
+                        elif Time > -5 and TimeDif <= -2: #-3 /
                             currentSymbol = "/ "
-                        elif TimeDif > -0.7142857142857143 and TimeDif <= -0.38095238095238093: #-to// #-0.4285 #
-                            if TimeNotFound: string = "- "; TimeNotFound = False
+                        elif Time > -10 and TimeDif <= -5: #-7 ^ / 
                             currentSymbol = "^ / "
-                        elif TimeDif > -2 and TimeDif <= -0.7142857142857143: #-to/ #-1 #
-                            if TimeNotFound: string = "- "; TimeNotFound = False
-                            currentSymbol = "/ "
                         else: #error
                             pass
-                        CurrentTime = Time
                     string += currentSymbol
                           
         else:
@@ -244,10 +238,11 @@ def ENGtoMC(string):
     if DEBUG: print("--ENGtoMC--"), print("--START--")
     string = string.lower() #set all to lowercase to keep it the same.
     #remove symbols that will create errors, the rest will be ignored.
-    string = string.replace("^", "") #seperator for words!
-    string = string.replace("/", "") #seperator for letters!
-    string = string.replace(".", "") #part of morse code!
-    string = string.replace("-", "") #part of morse code!
+    string = (((string.replace("^", "")).replace("/", "")).replace(".", "")).replace("-", "")
+    #string = string.replace("^", "") #seperator for words!
+    #string = string.replace("/", "") #seperator for letters!
+    #string = string.replace(".", "") #part of morse code!
+    #string = string.replace("-", "") #part of morse code!
     #end of removing
     for index in range(0 ,len(N_ALPHABET)): #replace the letters.
         string = string.replace(N_ALPHABET[index], (MC_ALPHABET[index] + "/ "))
@@ -256,12 +251,15 @@ def ENGtoMC(string):
 
 def MCtoENG(string):
     if DEBUG: print("--MCtoENG--"), print("--START--")
-    letters = string.split("/") #make the string into a list
-    for index in range(0 ,len(letters)):
-        replaceWithIndex = MC_ALPHABET.index(letters[index]) #find the MC index of the letter
-        letters[index] = N_ALPHABET[replaceWithIndex] #replace the letter using this index with the normal alphabet
-        if DEBUG: print("replace '{}' with '{}'".format((letters[index] + "/ "), N_ALPHABET[replaceWithIndex]))
-    string = "".join(letters) #make the list into a string
+    try:
+        letters = string.split("/") #make the string into a list
+        for index in range(0 ,len(letters)):
+            replaceWithIndex = MC_ALPHABET.index(letters[index]) #find the MC index of the letter
+            letters[index] = N_ALPHABET[replaceWithIndex] #replace the letter using this index with the normal alphabet
+            if DEBUG: print("replace '{}' with '{}'".format((letters[index] + "/ "), N_ALPHABET[replaceWithIndex]))
+        string = "".join(letters) #make the list into a string
+    except:
+        pass
     if DEBUG: print("--END--"), print("--MCtoENG--")
     return string
 
@@ -276,8 +274,5 @@ window = Tk()
 window.title("Morse Code Translator")
 
 p = MainGUI(window)
-window.mainloop()
-if DEBUG: print("-----END-----"), print("-----main-----")
-
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
