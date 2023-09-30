@@ -8,8 +8,8 @@ import os
 FULLSCREEN = True
 DEBUG = False
 SHUTDOWN = False
-SEND_SPEED = 0.1
-RECORD_IDLE_TIME = 10
+SEND_SPEED = 0.2 #in seconds# the tested min is 0.1 or so
+RECORD_IDLE_TIME = 5
 RECORD_OFF_TIME = 0.001
 #get the system color
 #wip
@@ -152,50 +152,37 @@ class MainGUI(Frame):
             TimeNotFound = True
             #wait until there is IR light detected
             while GPIO.input(SENSOR) == False:
-                if time() - StartTime < RECORD_IDLE_TIME: self.ow.config(text=("IDLE TIME: {}/{}\nWAITING TO START".format(time() - StartTime, RECORD_IDLE_TIME)))
+                if time() - StartTime < RECORD_IDLE_TIME: pass#self.ow.config(text=("IDLE TIME: {}/{}\nWAITING TO START".format(time() - StartTime, RECORD_IDLE_TIME)))
                 else: return "No Recording"
             #start recording
             while True:
                 #get ON/OFF time
-                if GPIO.input(SENSOR) == True:
-                    Time = self.recordON(string)
-                else:
-                    Time = self.recordOFF(string)
+                if GPIO.input(SENSOR) == True: Time = self.recordON()
+                else: Time = self.recordOFF()
                 #if time == idle time: return the string and end recording
-                if Time == -RECORD_IDLE_TIME:
-                    return string
+                if Time == -RECORD_IDLE_TIME: return string
                 #if this is the first time, setup some stuff
                 if TimeNotFound and string == "":
                     CurrentTime = Time
                     string = "?"
-                    currentSymbol = ""
                 #else: find the time difference and find the next symbol
                 else:
-                    #1#“.” To something: “-” 0.33333... “/” -0.33333... “//” -0.1328571429 
-                    #3#“-” to something:“//” -0.4285714286 “/” -1 “.” 3 
-                    #-3#“/” to something: “-” -1 “.” -3 
-                    #-7#“//” to something: “-” -2.3333333... “.” -7 
                     #test
-                    if times == [] and TimeNotFound: #only combos (# = space between symbols) = ".#", "./", and "-#" !!(AND -to/ and -to// and .to//)!!
-                        if CurrentTime > 0: string, currentSymbol, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time, times)
+                    if times == [] and TimeNotFound:
+                        string, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time, times)
                         if TimeNotFound:
                             times = [CurrentTime, Time]
                             CurrentTime = Time
-
                     elif TimeNotFound:
-                        string, currentSymbol, SendSpeed, TimeNotFound = recordSpeedFind(CurrentTime, Time, times)
+                        if CurrentTime > 0: string, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time, times)
                         if TimeNotFound: CurrentTime = Time
                         else:
                             newString = ""
                             for value in times:
                                 newString += recordSymbolFind(value, SendSpeed)
                             string = (newString + string)
-                            
-            
                     else:
                         string += recordSymbolFind(Time, SendSpeed)
-
-                    #string += currentSymbol
                           
         else:
             if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
@@ -203,58 +190,51 @@ class MainGUI(Frame):
             return "GPIO IS OFF! RECORDING IS OFFLINE!!!"
 
 
-    def recordON(self, string):
+    def recordON(self):
         StartTime = time()
         while True:
-            self.ow.config(text=("RECORDING: {}\nCURRENT STRING: {}".format(time() - StartTime, string)))
+            #self.ow.config(text=("RECORDING: {}\nCURRENT STRING: {}".format(time() - StartTime, string)))
             if GPIO.input(SENSOR) == False:
                 startOFF = time()
                 while GPIO.input(SENSOR) == False:
                     if time() - startOFF > RECORD_OFF_TIME: return (time() - StartTime)
-
-    def recordOFF(self, string):
+    def recordOFF(self):
         StartTime = time()
         while GPIO.input(SENSOR) == False:
-            if time() - StartTime < RECORD_IDLE_TIME: self.ow.config(text=("IDLE TIME: {}/{}\nCURRENT STRING: {}".format(time() - StartTime, RECORD_IDLE_TIME, string)))
-            else: return -RECORD_IDLE_TIME
+            if time() - StartTime >= RECORD_IDLE_TIME: return -RECORD_IDLE_TIME
         return -(time() - StartTime)
     def recordEND(self, string):
-        if string != "GPIO IS OFF! RECORDING IS OFFLINE!!!":
+        if string != "GPIO IS OFF! RECORDING IS OFFLINE!!!" and string != "No Recording":
             self.ow.config(text=("STRING: {}".format(MCtoENG(string))))
+        else: self.ow.config(text=(string))
         if DEBUG: print("----END----"), print("----record----")
 
 def recordSpeedFind(CurrentTime, Time, times):
-
     TimeDif = CurrentTime / Time
     if  TimeDif > -0.23809523809523809 and TimeDif <= 0:#.to// #-0.14285714285714285
         string = ". ^ / "
-        currentSymbol = ""
         SendSpeed = (Time * -1)
         TimeNotFound = False
     elif  TimeDif > -0.38095238095238094 and TimeDif <= -0.23809523809523809: #.to/ -0.33333333333333333
         string = ". / "
-        currentSymbol = ""
         SendSpeed = CurrentTime
         TimeNotFound = False
     elif  TimeDif > -0.714285714285714275 and TimeDif <= -0.38095238095238094:#-to// #-0.42857142857142855
         string = "- ^ / "
-        currentSymbol = ""
-        SendSpeed = (Time * -1)
+        SendSpeed = -Time
         TimeNotFound = False
     elif  TimeDif > -2 and TimeDif <= -0.714285714285714275: #.to# or -to/ -1.0 ######
         string = "?" ###################
-        currentSymbol = ""
         SendSpeed = "?"
         TimeNotFound = True
         times = times.append(Time)
     elif  TimeDif > -4 and TimeDif <= -2:#-to# -3.0
         string = "- "
-        currentSymbol = ""
-        SendSpeed = (Time * -1)
+        SendSpeed = -Time
         TimeNotFound = False
     else: #error
-        pass
-    return string, currentSymbol, SendSpeed, TimeNotFound, times
+        print("!!!recording error!!!")
+    return string, SendSpeed, TimeNotFound, times
 def recordSymbolFind(Time, SendSpeed):
     Time /= SendSpeed
     if Time > 2 and Time <= 5: #3 -
@@ -289,11 +269,12 @@ def ENGtoMC(string):
 def MCtoENG(string):
     if DEBUG: print("--MCtoENG--"), print("--START--")
     try:
-        letters = string.split("/") #make the string into a list
+        letters = string.split("/ ") #make the string into a list
         for index in range(0 ,len(letters)):
-            replaceWithIndex = MC_ALPHABET.index(letters[index]) #find the MC index of the letter
-            letters[index] = N_ALPHABET[replaceWithIndex] #replace the letter using this index with the normal alphabet
-            if DEBUG: print("replace '{}' with '{}'".format((letters[index] + "/ "), N_ALPHABET[replaceWithIndex]))
+            try:
+                replaceWithIndex = MC_ALPHABET.index(letters[index]) #find the MC index of the letter
+                letters[index] = N_ALPHABET[replaceWithIndex] #replace the letter using this index with the normal alphabet
+            except: pass
         string = "".join(letters) #make the list into a string
     except:
         pass
@@ -314,6 +295,3 @@ p = MainGUI(window)
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
 
-p = MainGUI(window)
-window.mainloop()
-if DEBUG: print("-----END-----"), print("-----main-----")
