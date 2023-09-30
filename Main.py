@@ -147,7 +147,9 @@ class MainGUI(Frame):
         if GPIO_ACTIVE:
             if DEBUG: print("---GPIO_IS_ON---")
             string = ""
+            times = []
             StartTime = time()
+            TimeNotFound = True
             #wait until there is IR light detected
             while GPIO.input(SENSOR) == False:
                 if time() - StartTime < RECORD_IDLE_TIME: self.ow.config(text=("IDLE TIME: {}/{}\nWAITING TO START".format(time() - StartTime, RECORD_IDLE_TIME)))
@@ -163,11 +165,10 @@ class MainGUI(Frame):
                 if Time == -RECORD_IDLE_TIME:
                     return string
                 #if this is the first time, setup some stuff
-                if string == "":
+                if TimeNotFound and string == "":
                     CurrentTime = Time
                     string = "?"
-                    currentSymbol = "?"
-                    TimeNotFound = True
+                    currentSymbol = ""
                 #else: find the time difference and find the next symbol
                 else:
                     #1#“.” To something: “-” 0.33333... “/” -0.33333... “//” -0.1328571429 
@@ -175,38 +176,26 @@ class MainGUI(Frame):
                     #-3#“/” to something: “-” -1 “.” -3 
                     #-7#“//” to something: “-” -2.3333333... “.” -7 
                     #test
-                    if TimeNotFound: #only combos (# = space between symbols) = ".#", "./", and "-#"
-                        TimeDif = CurrentTime / Time
-                        if  TimeDif > -0.6666666666666666 and TimeDif <= 0: #.to/ -0.3333...
-                            string = ". "
-                            currentSymbol = "/ "
-                            SendSpeed = CurrentTime
-                        elif  TimeDif > -1.6666666666666667 and TimeDif <= -0.6666666666666666: #.to# -1.0 
-                            string = ". "
-                            currentSymbol = ""
-                            SendSpeed = CurrentTime
-                        elif  TimeDif > -4.5 and TimeDif <= -1.6666666666666667:#-to# -3.0
-                            string = "- "
-                            currentSymbol = ""
-                            SendSpeed = (Time * -1)
-                        else: #error
-                            pass
+                    if times == [] and TimeNotFound: #only combos (# = space between symbols) = ".#", "./", and "-#" !!(AND -to/ and -to// and .to//)!!
+                        if CurrentTime > 0: string, currentSymbol, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time)
+                        if TimeNotFound:
+                            times = [CurrentTime, Time]
+                            CurrentTime = Time
+
+                    elif TimeNotFound:
+                        string, currentSymbol, SendSpeed, TimeNotFound = recordSpeedFind(CurrentTime, Time)
+                        if TimeNotFound: CurrentTime = Time
+                        else:
+                            newString = ""
+                            for value in times:
+                                newString += recordSymbolFind(value, SendSpeed)
+                            string = (newString + string)
                             
+            
                     else:
-                        Time /= SendSpeed
-                        if Time > 2 and TimeDif <= 5: #3 -
-                            currentSymbol = "- "
-                        elif Time > 0 and TimeDif <= 2: #1 .
-                            currentSymbol = ". "
-                        elif Time > -2 and TimeDif <= 0: #-1 None
-                            currentSymbol = ""
-                        elif Time > -5 and TimeDif <= -2: #-3 /
-                            currentSymbol = "/ "
-                        elif Time > -10 and TimeDif <= -5: #-7 ^ / 
-                            currentSymbol = "^ / "
-                        else: #error
-                            pass
-                    string += currentSymbol
+                        string += recordSymbolFind(Time, SendSpeed)
+
+                    #string += currentSymbol
                           
         else:
             if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
@@ -233,6 +222,54 @@ class MainGUI(Frame):
         if string != "GPIO IS OFF! RECORDING IS OFFLINE!!!":
             self.ow.config(text=("STRING: {}".format(MCtoENG(string))))
         if DEBUG: print("----END----"), print("----record----")
+
+def recordSpeedFind(CurrentTime, Time, times):
+
+    TimeDif = CurrentTime / Time
+    if  TimeDif > -0.6666666666666666 and TimeDif <= 0: #.to/ -0.3333...
+        string = ". / "
+        currentSymbol = ""
+        SendSpeed = CurrentTime
+        TimeNotFound = False
+    elif  TimeDif > 0 and TimeDif <= -0.6666666666666666: #.to# or -to/ -1.0 ######
+        string = "?" ###################
+        currentSymbol = ""
+        SendSpeed = "?"
+        TimeNotFound = True
+        times = times.append(Time)
+    elif  TimeDif > 0 and TimeDif <= 0:#.to// #-0.14285714285714285
+        string = ". ^ / "
+        currentSymbol = ""
+        SendSpeed = (Time * -1)
+        TimeNotFound = False
+    elif  TimeDif > 0 and TimeDif <= 0:#-to# -3.0
+        string = "- "
+        currentSymbol = ""
+        SendSpeed = (Time * -1)
+        TimeNotFound = False
+    elif  TimeDif > 0 and TimeDif <= 0:#-to// #-0.42857142857142855
+        string = "- ^ / "
+        currentSymbol = ""
+        SendSpeed = (Time * -1)
+        TimeNotFound = False
+    else: #error
+        pass
+    return string, currentSymbol, SendSpeed, TimeNotFound, times
+def recordSymbolFind(Time, SendSpeed):
+    Time /= SendSpeed
+    if Time > 2 and Time <= 5: #3 -
+        currentSymbol = "- "
+    elif Time > 0 and Time <= 2: #1 .
+        currentSymbol = ". "
+    elif Time > -2 and Time <= 0: #-1 None
+        currentSymbol = ""
+    elif Time > -5 and Time <= -2: #-3 /
+        currentSymbol = "/ "
+    elif Time > -10 and Time <= -5: #-7 ^ / 
+        currentSymbol = "^ / "
+    else: #error
+        pass
+    return currentSymbol
 
 def ENGtoMC(string):
     if DEBUG: print("--ENGtoMC--"), print("--START--")
@@ -272,6 +309,10 @@ def end():
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
 window.title("Morse Code Translator")
+
+p = MainGUI(window)
+window.mainloop()
+if DEBUG: print("-----END-----"), print("-----main-----")
 
 p = MainGUI(window)
 window.mainloop()
