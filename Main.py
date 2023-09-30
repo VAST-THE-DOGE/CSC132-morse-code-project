@@ -177,13 +177,13 @@ class MainGUI(Frame):
                     #-7#“//” to something: “-” -2.3333333... “.” -7 
                     #test
                     if times == [] and TimeNotFound: #only combos (# = space between symbols) = ".#", "./", and "-#" !!(AND -to/ and -to// and .to//)!!
-                        if CurrentTime > 0: string, currentSymbol, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time)
+                        if CurrentTime > 0: string, currentSymbol, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time, times)
                         if TimeNotFound:
                             times = [CurrentTime, Time]
                             CurrentTime = Time
 
                     elif TimeNotFound:
-                        string, currentSymbol, SendSpeed, TimeNotFound = recordSpeedFind(CurrentTime, Time)
+                        string, currentSymbol, SendSpeed, TimeNotFound = recordSpeedFind(CurrentTime, Time, times)
                         if TimeNotFound: CurrentTime = Time
                         else:
                             newString = ""
@@ -226,29 +226,29 @@ class MainGUI(Frame):
 def recordSpeedFind(CurrentTime, Time, times):
 
     TimeDif = CurrentTime / Time
-    if  TimeDif > -0.6666666666666666 and TimeDif <= 0: #.to/ -0.3333...
+    if  TimeDif > -0.23809523809523809 and TimeDif <= 0:#.to// #-0.14285714285714285
+        string = ". ^ / "
+        currentSymbol = ""
+        SendSpeed = (Time * -1)
+        TimeNotFound = False
+    elif  TimeDif > -0.38095238095238094 and TimeDif <= -0.23809523809523809: #.to/ -0.33333333333333333
         string = ". / "
         currentSymbol = ""
         SendSpeed = CurrentTime
         TimeNotFound = False
-    elif  TimeDif > 0 and TimeDif <= -0.6666666666666666: #.to# or -to/ -1.0 ######
+    elif  TimeDif > -0.714285714285714275 and TimeDif <= -0.38095238095238094:#-to// #-0.42857142857142855
+        string = "- ^ / "
+        currentSymbol = ""
+        SendSpeed = (Time * -1)
+        TimeNotFound = False
+    elif  TimeDif > -2 and TimeDif <= -0.714285714285714275: #.to# or -to/ -1.0 ######
         string = "?" ###################
         currentSymbol = ""
         SendSpeed = "?"
         TimeNotFound = True
         times = times.append(Time)
-    elif  TimeDif > 0 and TimeDif <= 0:#.to// #-0.14285714285714285
-        string = ". ^ / "
-        currentSymbol = ""
-        SendSpeed = (Time * -1)
-        TimeNotFound = False
-    elif  TimeDif > 0 and TimeDif <= 0:#-to# -3.0
+    elif  TimeDif > -4 and TimeDif <= -2:#-to# -3.0
         string = "- "
-        currentSymbol = ""
-        SendSpeed = (Time * -1)
-        TimeNotFound = False
-    elif  TimeDif > 0 and TimeDif <= 0:#-to// #-0.42857142857142855
-        string = "- ^ / "
         currentSymbol = ""
         SendSpeed = (Time * -1)
         TimeNotFound = False
