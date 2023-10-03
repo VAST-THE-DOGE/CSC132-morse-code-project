@@ -158,7 +158,6 @@ class MainGUI(Frame):
                 #if time == idle time: return the string and end recording
                 if Time == -RECORD_IDLE_TIME: return string
                 #if this is the first time, setup some stuff
-                if DEBUG: print(Time)
                 if TimeNotFound and not string: #string == "":
                     CurrentTime = Time
                     string = "?"
@@ -174,8 +173,7 @@ class MainGUI(Frame):
                         if CurrentTime > 0: string, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time, times)
                         if TimeNotFound: CurrentTime = Time
                         else:
-                            newString = "".join(recordSymbolFind(value, SendSpeed) for value in times)
-                            string = (newString + string)
+                            string = (("".join(recordSymbolFind(value, SendSpeed) for value in times)) + string)
                     else:
                         string += recordSymbolFind(Time, SendSpeed)
                           
@@ -206,11 +204,11 @@ class MainGUI(Frame):
 def recordSpeedFind(CurrentTime, Time, times):
     TimeDif = CurrentTime / Time
     if  TimeDif > -0.23809523809523809 and TimeDif <= 0:#.to// #-0.14285714285714285
-        return ". ^ / ", (Time * -1), False, times
+        return ". / ^ / ", (Time * -1), False, times
     elif  TimeDif > -0.38095238095238094 and TimeDif <= -0.23809523809523809: #.to/ -0.33333333333333333
         return ". / ", CurrentTime, False, times
     elif  TimeDif > -0.714285714285714275 and TimeDif <= -0.38095238095238094:#-to// #-0.42857142857142855
-        return "- ^ / ", -Time, False, times
+        return "- / ^ / ", -Time, False, times
     elif  TimeDif > -2 and TimeDif <= -0.714285714285714275: #.to# or -to/ -1.0 ######
         return "?", None, True, times.append(Time)
     elif  TimeDif > -4 and TimeDif <= -2:#-to# -3.0
@@ -229,7 +227,7 @@ def recordSymbolFind(Time, SendSpeed):
     elif Time > -5 and Time <= -2: #-3 /
         return "/ "
     elif Time > -10 and Time <= -5: #-7 ^ / 
-        return "^ / "
+        return "/ ^ / "
     else: #error
         print("!!!setting_error!!!")
 
