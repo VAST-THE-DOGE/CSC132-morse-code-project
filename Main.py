@@ -40,7 +40,7 @@ except:
 #KEEP THIS THE SAME!
 N_ALPHABET = [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 MC_ALPHABET = ['^ ', '. - ', '- . . . ', '- . - . ', '- . . ', '. ', '. . - . ', '- - . ', '. . . . ', '. . ', '. - - - ', '- . - ', '. - . . ', '- - ', '- . ', '- - - ', '. - - . ', '- - . - ', '. - . ', '. . . ', '- ', '. . - ', '. . . - ', '. - - ', '- . . - ', '- . - - ', '- - . ']
-
+#0=----- 1=.---- 2=..--- 3=...-- 4=....- 5=..... 6=-.... 7=--... 8=---.. 9=----. "."=.-.-.- ","=--..-- "?" = ..--.. "&"= "'"= "@"= ")"= "("= ":"= ","= "="= "!"= "-"= "%"= "+"= """= "/"=
 if GPIO_ACTIVE:
     if DEBUG: print("--setupGPIO--"), print("--START--")
     from time import sleep
@@ -238,10 +238,6 @@ def ENGtoMC(string):
     string = string.lower() #set all to lowercase to keep it the same.
     #remove symbols that will create errors, the rest will be ignored.
     string = (((string.replace("^", "")).replace("/", "")).replace(".", "")).replace("-", "")
-    #string = string.replace("^", "") #seperator for words!
-    #string = string.replace("/", "") #seperator for letters!
-    #string = string.replace(".", "") #part of morse code!
-    #string = string.replace("-", "") #part of morse code!
     #end of removing
     for index in range(0 ,len(N_ALPHABET)): #replace the letters.
         string = string.replace(N_ALPHABET[index], (MC_ALPHABET[index] + "/ "))
@@ -272,6 +268,11 @@ def end():
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
 window.title("Morse Code Translator")
+
+p = MainGUI(window)
+window.mainloop()
+if DEBUG: print("-----END-----"), print("-----main-----")
+
 
 p = MainGUI(window)
 window.mainloop()
