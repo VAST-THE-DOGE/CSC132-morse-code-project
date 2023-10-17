@@ -15,4 +15,4 @@ This is a script designed to be used on the Raspberry Pi to receive on/off input
 The script also does this in reverse by translating English into Morse Code and sending it via any LED or system that uses on/off GPIO.
 
 #troubleshooting#
-This is not implemented yet, so  fill out a bug report and submit it.
+This is not implemented yet, so  fill out a bug report and submit it and we will try to fix the problem. Furthermore, make sure to update to the newest version regularly since each version has a chance to fix the bug that you are dealing with.
