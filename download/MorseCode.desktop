@@ -1,4 +1,4 @@
 [Desktop Entry]
 Type=Application
-Name=Morse Code Translator
-Exec=python3 /home/pi/MorseCode.py
+Name=MorseCode
+Exec=python3 /home/pi/Desktop/MorseCode.py
