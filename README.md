@@ -10,18 +10,8 @@ GitHub download link: https://github.com/VAST-THE-DOGE/CSC132-morse-code-project
 5. Verify that the script works as expected by running and testing it.
 6. If the script works then continue, if not then follow the troubleshooting at the bottom of the readme.
 7. If you want the script to run when the system starts then continue.
-8. Create a .desktop file in /etc/xdg/autostart by using this terminal command "sudo nano /etc/xdg/autostart/MorseCode.desktop" without the quotation marks.
-9. Change the values to look like this:
-
-[Desktop Entry]
-
-Type=Application
-
-Name=Morse Code Translator
-
-Exec=python3 /home/pi/Desktop/MorseCode.py
-
-10. Test to see if the script opens with the RPi and if so then you are done. However, if it does not work then follow the troubleshooting at the bottom of the readme.
+8. Install the .desktop file and move it by using "cd Downloads" in the terminal and then using "sudo mv MorseCode.desktop /etc/xdg/autostart"
+9. Test to see if the script opens with the RPi and if so then you are done. However, if it does not work then follow the troubleshooting at the bottom of the readme.
 
 #Uninstall#
 1. If you are in the script GUI, then type "c/quit" into the input box without the quotation marks and press the send button.
