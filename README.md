@@ -14,8 +14,11 @@ GitHub download link: https://github.com/VAST-THE-DOGE/CSC132-morse-code-project
 9. Change the values to look like this:
 
 [Desktop Entry]
+
 Type=Application
+
 Name=Morse Code Translator
+
 Exec=python3 /home/pi/MorseCode.py
 
 10. Test to see if the script opens with the RPi and if so then you are done. However, if it does not work then follow the troubleshooting at the bottom of the readme.
