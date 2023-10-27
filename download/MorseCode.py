@@ -2,20 +2,21 @@
 from time import sleep, time
 from tkinter import *
 from os import _exit, system
+##################################################################
 #Settings
+ADMIN = True
 FULLSCREEN = True
 DEBUG = False
 SHUTDOWN = False
 SEND_SPEED = 0.2 #in seconds# the tested min is 0.1 or so
-RECORD_IDLE_TIME = 5
-RECORD_OFF_TIME = 0.001
+RECORD_IDLE_TIME = 5 #in seconds#
+RECORD_OFF_TIME = 0.001 #in seconds#
 #GPIO Stuff
-SENSOR = 0 #GPIO PIN OF THE SENSOR
-RED_LED = 0 #GPIO PIN OF THE RED LED
-IR_LED = 0 #GPIO PIN OF THE IR LED
-
-
-try:
+SENSOR = 0 #GPIO IN PIN
+RED_LED = 0 #GPIO OUT PIN 1
+IR_LED = 0 #GPIO OUT PIN 2
+###################################################################
+try: #try to enable the gpio to see if you are on the RPi or not
     if DEBUG: print("--setupGPIO--"), print("--START--")
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
@@ -24,37 +25,28 @@ try:
     GPIO.setup(IR_LED, GPIO.OUT)
     if DEBUG: print("--END--"), print("--setupGPIO--")
     GPIO_ACTIVE = True
-except:
+except: #do this if gpio setup fails.
     GPIO_ACTIVE = False
     if DEBUG: print("--!!FAILED_TO_SETUP!!--"), print("--setupGPIO--")
 
-#KEEP THIS THE SAME!
+#Translation lists. keep the values to translate in the same index! the values "^", "-", ".", "/", and " " are translated in the ENGtoMC and MCtoENG functions.
 N_ALPHABET = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', "0","1","2","3","4","5","6","7","8","9",'&',"'",'@',')','(',':',',','=','!','+','"','?',';','$']
 MC_ALPHABET = ['. - ', '- . . . ', '- . - . ', '- . . ', '. ', '. . - . ', '- - . ', '. . . . ', '. . ', '. - - - ', '- . - ', '. - . . ', '- - ', '- . ', '- - - ', '. - - . ', '- - . - ', '. - . ', '. . . ', '- ', '. . - ', '. . . - ', '. - - ', '- . . - ', '- . - - ', '- - . ', '- - - - - ','. - - - - ','. . - - - ','. . . - - ','. . . . - ','. . . . . ','- . . . . ','- - . . . ','- - - . . ','- - - - . ','. - . . . ',". - - - - . ",'. - - . - . ','- . - - . - ','- . - - . ','- . - - . ','- - . . - - ','- . . . - ','- . - . - - ','. - . - . ','. - . . - . ','. . - - . . ','- . - . - . ','. . . - . . - ']
 
-
-if GPIO_ACTIVE:
-    if DEBUG: print("--setupGPIO--"), print("--START--")
-    from time import sleep
-    import RPi.GPIO as GPIO
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(SENSOR, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.setup(RED_LED, GPIO.OUT)
-    GPIO.setup(IR_LED, GPIO.OUT)
-    if DEBUG: print("--END--"), print("--setupGPIO--")
-
+#gui setup
 class MainGUI(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
         if FULLSCREEN: parent.attributes("-fullscreen", True)
         self.setupGUI()
+
     def setupGUI(self):
         if DEBUG: print("--setupGUI--"), print("--START--")
         self.update_idletasks() # update the window state
         width = self.winfo_screenwidth() # get the window width
         height = self.winfo_screenheight() # get the window height
-        width //= 8
-        height //= 9
+        width //= 8 #set this up for columns 
+        height //= 9 #set this up for rows
 
         for row in range(9*height): #setup the rows and columns
             Grid.rowconfigure(self, row, weight=1)
@@ -62,7 +54,7 @@ class MainGUI(Frame):
             Grid.columnconfigure(self, col, weight=1)
         self.config(bg="light grey")
         self.pack(fill=BOTH, expand=1)
-        
+        #bunch of gui stuff.
         #exit button
         self.eb = Button(self, text="X", bg="red", command=lambda: end(), font=("TexGyreAdventor", 30))
         self.eb.grid(row=0*height, column=9*width, sticky=E+W+N+S, padx=5, pady=5)
@@ -70,13 +62,13 @@ class MainGUI(Frame):
         self.tb = Button(self,  text="Send", bg="green", font=("TexGyreAdventor", 45), command=lambda: self.send(self.uiw.get()))
         self.tb.grid(row=1*height, column=8*width, sticky=E+W+N+S, padx=5, pady=5)
         #record button
-        self.rb = Button(self,  text="Record", bg="orange", command=lambda: self.recordEND(self.record()), font=("TexGyreAdventor", 45))
+        self.rb = Button(self,  text="Record", bg="orange", command=lambda: self.recordEND(MCtoENG(TIMEtoMC(self.record()))), font=("TexGyreAdventor", 45))
         self.rb.grid(row=3*height, column=7*width, rowspan=2*height, columnspan=2*width, sticky=E+W+N+S, padx=5, pady=5)
         #user input window
         self.uiw = Entry(self, bg="white", font=("TexGyreAdventor", 45))
         self.uiw.grid(row=1*height, column=1*width, columnspan=6*width, sticky=E+W+N+S, padx=5, pady=5)
         #output window
-        self.ow = Label(self, text='Type "c/help" without the quotation marks in the translation area \nand click send for a list of commands', anchor=N+W, bg="white", height=1, font=("TexGyreAdventor", 30))
+        self.ow = Label(self, text='Type "c/help" without the quotation marks in the translation area \nand click send for a list of commands', anchor=N+W, bg="white", height=1, font=("TexGyreAdventor", 25))
         self.ow.grid(row=3*height, column=1*width, rowspan=2*height, columnspan=5*width, sticky=E+W+N+S, padx=5, pady=5)
 
         ###############
@@ -94,10 +86,12 @@ class MainGUI(Frame):
         self.qb5 = Button(self, text="GOODBYE", bg="grey", font=("TexGyreAdventor", 45), command=lambda: self.send("GOODBYE"))
         self.qb5.grid(row=7*height, column=5*width, sticky=E+W+N+S, padx=5, pady=5)
         if DEBUG: print("--END--"), print("--setupGUI--")
-    def send(self, sendInfo):
+
+    def send(self, sendInfo): #sendding function that is called with the "send" button.
         if DEBUG: print("----send----"), print("----START----")
-        if ((sendInfo.lower()).split("/"))[0] == "c": self.command(((sendInfo.lower()).split("/"))) #test to see if c/ was used for a command
-        else:
+        #test to see if "c/" was used and if so consider the input as a command instead of something to send.
+        if ((sendInfo.lower()).split("/"))[0] == "c": self.command(((sendInfo.lower()).split("/")))
+        else: #if a command was not used.
             newSendInfo = ENGtoMC(sendInfo)
             if GPIO_ACTIVE:
                 if DEBUG: print("---GPIO_IS_ON---")
@@ -136,40 +130,21 @@ class MainGUI(Frame):
         if DEBUG: print("----record----"), print("----START----")
         if GPIO_ACTIVE:
             if DEBUG: print("---GPIO_IS_ON---")
-            string = ""
             times = []
             StartTime = time()
-            TimeNotFound = True
             #wait until there is IR light detected
             while not GPIO.input(SENSOR):
-                if time() - StartTime >= RECORD_IDLE_TIME: return "No Recording"
+                if time() - StartTime >= RECORD_IDLE_TIME: return [0]
             #start recording
             while True:
                 #get ON/OFF time
                 if GPIO.input(SENSOR): Time = self.recordON()
                 else: Time = self.recordOFF()
                 #if time == idle time: return the string and end recording
-                if Time == -RECORD_IDLE_TIME: return string
-                #if this is the first time, setup some stuff
-                if TimeNotFound and not string: #string == "":
-                    CurrentTime = Time
-                    string = "?"
+                if Time == -RECORD_IDLE_TIME: return times
                 #else: find the time difference and find the next symbol
-                else:
-                    #test
-                    if TimeNotFound and not times: #times == []:
-                        string, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time, times)
-                        if TimeNotFound:
-                            times = [CurrentTime, Time]
-                            CurrentTime = Time
-                    elif TimeNotFound:
-                        if CurrentTime > 0: string, SendSpeed, TimeNotFound, times = recordSpeedFind(CurrentTime, Time, times)
-                        if TimeNotFound: CurrentTime = Time
-                        else:
-                            string = (("".join(recordSymbolFind(value, SendSpeed) for value in times)) + string)
-                    else:
-                        string += recordSymbolFind(Time, SendSpeed)
-                          
+                times.append(Time)
+             
         else:
             if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
             self.ow.config(text=("GPIO IS OFF! RECORDING IS OFFLINE!!!"))
@@ -195,20 +170,30 @@ class MainGUI(Frame):
         if DEBUG: print("----END----"), print("----record----")
 
     def command(self, line):
+        global ADMIN
         if line[1] == "help": out = '"c/fullscreen/[True or False]","c/quit",\n"c/debug/[True or False]","c/sendspeed/[number > 0]",\n"c/idletime/[number > 0]","c/sendspeed/[number > 0]",\n"c/offtime/[number > 0]"'
         elif line[1] == "fullscreen":
-            try:
-                window.attributes("-fullscreen", (line[2].replace("[","")).replace("]",""))
-                out = "Set fullscreen to {}".format((line[2].replace("[","")).replace("]",""))
-            except: out = "!!!Error Getting True/False Value!!!"
+            if ADMIN == False:
+                try:
+                    window.attributes("-fullscreen", (line[2].replace("[","")).replace("]",""))
+                    out = "Set fullscreen to {}".format((line[2].replace("[","")).replace("]",""))
+                except: out = "!!!Error Getting True/False Value!!!"
+            else: out = "!admin command was not executed!"
         elif line[1] == "quit":
             out = "Quiting the Program"
             _exit(0)
         elif line[1] == "debug":
+            if ADMIN == False:
+                try:
+                    global DEBUG
+                    DEBUG = ((line[2].replace("[","")).replace("]",""))
+                    out = "Set debug to {}".format(DEBUG)
+                except: out = "!!!Error Getting True/False Value!!!"
+            else: out = "!admin command was not executed!"
+        elif line[1] == "admin":
             try:
-                global DEBUG
-                DEBUG = ((line[2].replace("[","")).replace("]",""))
-                out = "Set debug to {}".format(DEBUG)
+                ADMIN = ((line[2].replace("[","")).replace("]",""))
+                out = "Set admin to {}".format(ADMIN)
             except: out = "!!!Error Getting True/False Value!!!"
         elif line[1] == "sendspeed":
             try:
@@ -229,31 +214,48 @@ class MainGUI(Frame):
                 else: out = "!!{} is NOT above 0!!".format(value)
             except: out = "!!!Error Getting Float or Integer Value!!!"
         elif line[1] == "offtime":
-            try:
-                global RECORD_OFF_TIME
-                value = float((line[2].replace("[","")).replace("]",""))
-                if value > 0:
-                    RECORD_OFF_TIME = value
-                    out = "Set recording off time to {}".format(value)
-                else: out = "!!{} is NOT above 0!!".format(value)
-            except: out = "!!!Error Getting Float or Integer Value!!!"
+            if ADMIN == False:
+                try:
+                    global RECORD_OFF_TIME
+                    value = float((line[2].replace("[","")).replace("]",""))
+                    if value > 0:
+                        RECORD_OFF_TIME = value
+                        out = "Set recording off time to {}".format(value)
+                    else: out = "!!{} is NOT above 0!!".format(value)
+                except: out = "!!!Error Getting Float or Integer Value!!!"
+            else: out = "!admin command was not executed!"
         else: out = '!!Invalid Command!! Use "c/help"'
+        print(out)
         self.ow.config(text=out)
-def recordSpeedFind(CurrentTime, Time, times):
+
+def TIMEtoMC(times):
+    if DEBUG: print("times:", times)
+    string = ""
+    SendSpeed = SEND_SPEED
+    for index in range(0, len(times), 2):
+        if times[index] > 0:
+            if DEBUG: print("record speed input:", times[index], times[index + 1])
+            SendSpeed = recordSpeedFind(times[index], times[index + 1])
+            if SendSpeed != None: print("FOUND:", SendSpeed); break #if the string is not ""
+    for value in times:
+        string += recordSymbolFind(value, SendSpeed)
+    return string
+
+def recordSpeedFind(CurrentTime, Time):
     TimeDif = CurrentTime / Time
     if  TimeDif > -0.23809523809523809 and TimeDif <= 0:#.to// #-0.14285714285714285
-        return ". / ^ / ", (Time * -1), False, times
+        return (Time * -1)
     elif  TimeDif > -0.38095238095238094 and TimeDif <= -0.23809523809523809: #.to/ -0.33333333333333333
-        return ". / ", CurrentTime, False, times
+        return CurrentTime
     elif  TimeDif > -0.714285714285714275 and TimeDif <= -0.38095238095238094:#-to// #-0.42857142857142855
-        return "- / ^ / ", -Time, False, times
+        return -Time
     elif  TimeDif > -2 and TimeDif <= -0.714285714285714275: #.to# or -to/ -1.0 ######
-        return "?", None, True, times.append(Time)
+        return None
     elif  TimeDif > -4 and TimeDif <= -2:#-to# -3.0
-        return "- ", -Time, False, times
+        return -Time
     else: #error
         print("!!!finding_error!!!")
-        return "?", None, True, times.append(Time)
+        return None
 
 def recordSymbolFind(Time, SendSpeed):
     Time /= SendSpeed
@@ -269,7 +271,7 @@ def recordSymbolFind(Time, SendSpeed):
         return "/ ^ / "
     else: #error
         print("!!!setting_error!!!")
-        return "? "
+        return "? / "
 
 def ENGtoMC(string):
     if DEBUG: print("--ENGtoMC--"), print("--START--")
@@ -299,8 +301,9 @@ def MCtoENG(string):
     return string
 
 def end():
+    if DEBUG: print("-----END-----"), print("-----main-----")
     window.attributes("-fullscreen", False)
-    if GPIO_ACTIVE and SHUTDOWN: system ("sudo shutdown -h now")
+    if GPIO_ACTIVE and SHUTDOWN: system("sudo shutdown -h now")
     _exit(0)
 
 if DEBUG: print("-----main-----"), print("-----START-----")
