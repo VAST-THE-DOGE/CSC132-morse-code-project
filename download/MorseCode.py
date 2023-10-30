@@ -134,6 +134,7 @@ class MainGUI(Frame):
                             sleep(SEND_SPEED_4)
                         else:
                             if DEBUG: print("--UNKNOWN_INPUT--"), print("'{}' WILL NOT SEND!".format(value))
+                    else: self.OWtext.set("!!!Unable to send!!! it would take too long to send this!")
             else:
                 if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
                 self.OWtext.set("translating: " + sendInfo + "\n sending: " + newSendInfo + "\n GPIO IS OFF! THIS WILL NOT SEND!!!")
@@ -187,7 +188,7 @@ class MainGUI(Frame):
 
     def command(self, line):
         global ADMIN
-        if line[1] == "help": out = '"c/fullscreen/[True or False]","c/quit",\n"c/debug/[True or False]","c/sendspeed/[number > 0]",\n"c/idletime/[number > 0]","c/sendspeed/[number > 0]",\n"c/offtime/[number > 0]"'
+        if line[1] == "help": out = '"c/fullscreen/[True or False]","c/quit",\n"c/debug/[True or False]","c/sendspeed/[number > 0]",\n"c/idletime/[number > 0]","c/sendspeed/[number > 0]",\n"c/offtime/[number > 0]","c/extra/[True or False]"'
         elif line[1] == "fullscreen":
             if ADMIN == True:
                 try:
@@ -211,6 +212,11 @@ class MainGUI(Frame):
             try:
                 ADMIN = ((line[2].replace("[","")).replace("]",""))
                 out = "Set admin to {}".format(ADMIN)
+            except: out = "!!!Error Getting True/False Value!!!"
+        elif line[1] == "extra":
+            try:
+                EXTRA_EFFECTS = ((line[2].replace("[","")).replace("]",""))
+                out = "Set extra effects to {}".format(EXTRA_EFFECTS)
             except: out = "!!!Error Getting True/False Value!!!"
         elif line[1] == "sendspeed":
             try:
@@ -318,10 +324,11 @@ def MCtoENG(string):
     return string
 
 def end():
-    if DEBUG: print("-----END-----"), print("-----main-----")
-    window.attributes("-fullscreen", False)
-    if GPIO_ACTIVE and SHUTDOWN: system("sudo shutdown -h now")
-    _exit(0)
+    if ADMIN == True:
+        if DEBUG: print("-----END-----"), print("-----main-----")
+        window.attributes("-fullscreen", False)
+        if GPIO_ACTIVE and SHUTDOWN: system("sudo shutdown -h now")
+        _exit(0)
 
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
@@ -330,4 +337,3 @@ window.title("Morse Code Translator")
 p = MainGUI(window)
 window.mainloop()
 if DEBUG: print("-----END-----"), print("-----main-----")
-
