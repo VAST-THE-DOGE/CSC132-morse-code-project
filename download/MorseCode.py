@@ -102,13 +102,12 @@ class MainGUI(Frame):
         else: #if a command was not used.
             newSendInfo = ENGtoMC(sendInfo)
             if GPIO_ACTIVE:
-                newSendInfo = newSendInfo.split()
-                if (len(newSendInfo) * SEND_SPEED) < MAX_SEND_TIME: #guess how long it would take to send and make sure it is not a crazy number.
+                if (len(newSendInfo.split()) * SEND_SPEED) < MAX_SEND_TIME: #guess how long it would take to send and make sure it is not a crazy number.
                     if DEBUG: print("---GPIO_IS_ON---")
-                    self.OWtext.set("translating: " + sendInfo + "\n sending: " + newSendInfo)
+                    self.OWtext.set("translating: " + str(sendInfo) + "\n sending: " + str(newSendInfo))
                     if DEBUG: print(newSendInfo)
                     SEND_SPEED_3, SEND_SPEED_2, SEND_SPEED_4 = (3 * SEND_SPEED), (2 * SEND_SPEED), (4 * SEND_SPEED)
-                    for value in newSendInfo:
+                    for value in newSendInfo.split():
         #A dot lasts for one second.
         #A dash lasts for three seconds. 
         #The space between dots and dashes that are part of the same letter is one second.
@@ -137,7 +136,7 @@ class MainGUI(Frame):
                     else: self.OWtext.set("!!!Unable to send!!! it would take too long to send this!")
             else:
                 if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
-                self.OWtext.set("translating: " + sendInfo + "\n sending: " + newSendInfo + "\n GPIO IS OFF! THIS WILL NOT SEND!!!")
+                self.OWtext.set("translating: " + str(sendInfo) + "\n sending: " + str(newSendInfo) + "\n GPIO IS OFF! THIS WILL NOT SEND!!!")
         if DEBUG: print("----END----"), print("----send----")
 
     def record(self):
@@ -172,7 +171,7 @@ class MainGUI(Frame):
             if not GPIO.input(SENSOR):
                 startOFF = time()
                 while not GPIO.input(SENSOR):
-                    if time() - startOFF > RECORD_OFF_TIME: return ((time() - StartTime) - RECORD_OFF_TIME)
+                    if time() - startOFF > RECORD_OFF_TIME: sound.stop(); return ((time() - StartTime) - RECORD_OFF_TIME)
     def recordOFF(self):
         StartTime = time()
         if EXTRA_EFFECTS: sound.stop(), GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
@@ -333,6 +332,10 @@ def end():
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
 window.title("Morse Code Translator")
+
+p = MainGUI(window)
+window.mainloop()
+if DEBUG: print("-----END-----"), print("-----main-----")
 
 p = MainGUI(window)
 window.mainloop()
