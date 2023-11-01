@@ -14,7 +14,6 @@ MAX_SEND_TIME = 30 #in seconds# it uses the formula "(length of list to send) mu
 RECORD_IDLE_TIME = 5 #in seconds#
 RECORD_OFF_TIME = 0.001 #in seconds#
 EXTRA_EFFECTS = True
-PRINT_RECORDING_TIME = True
 #GPIO Stuff
 SENSOR = 0 #GPIO IN PIN
 RED_LED = 0 #GPIO OUT PIN 1
@@ -167,7 +166,6 @@ class MainGUI(Frame):
         StartTime = time()
         if EXTRA_EFFECTS: sound.play(-1), GPIO.output(RED_LED, True), GPIO.output(IR_LED, True)
         while True:
-            if PRINT_RECORDING_TIME: self.OWtext.set("ON:", round(time() - StartTime, 3))
             if not GPIO.input(SENSOR):
                 startOFF = time()
                 while not GPIO.input(SENSOR):
@@ -176,7 +174,6 @@ class MainGUI(Frame):
         StartTime = time()
         if EXTRA_EFFECTS: sound.stop(), GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
         while not GPIO.input(SENSOR):
-            if PRINT_RECORDING_TIME: self.OWtext.set("OFF:", round(time() - StartTime, 3))
             if time() - StartTime >= RECORD_IDLE_TIME: return -RECORD_IDLE_TIME
         return -((time() - StartTime) + RECORD_OFF_TIME)
     
