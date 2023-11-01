@@ -1,5 +1,5 @@
 from tkinter import *
-from os import _exit, system
+from os import _exit, system, remove
 from time import sleep
 AutoStart=False
 
@@ -29,12 +29,13 @@ class MainGUI(Frame):
 
         if AutoStart:
             try:
-                system("sudo mv /Downloads/MorseCode.desktop /etc/xdg/autostart")
+                system("sudo mv home/pi/Downloads/MorseCode.desktop /etc/xdg/autostart")
             except:
                 print('failed to move "MorseCode.desktop"')
                 
         try:
-            system("sudo mv /Downloads/MorseCode.py /Desktop")
+            system("sudo mv home/pi/Downloads/MorseCode.py /Desktop")
+            system("sudo mv home/pi/Downloads/beep.wav /Desktop")
         except:
             print('failed to move "MorseCode.py"')
         out="Installed! Starting script in 5 seconds."
@@ -46,12 +47,17 @@ class MainGUI(Frame):
         self.ei.grid(row=0, column=0, columnspan=5, rowspan=10, sticky=E+W+N+S, padx=5, pady=5)
         sleep(5)
         try:
-            system("Desktop/MorseCode.py")
+            system("home/pi/Desktop/MorseCode.py")
+            _exit(0)
         except:
             pass
         _exit(0)
     def uninstall(self):
-        pass
+        try:
+            remove("/etc/xdg/autostart/MorseCode.desktop")
+            remove("home/pi/Desktop/MorseCode.py")
+            remove("home/pi/Desktop/beep.wav")
+        except: print("error")
 
 window = Tk()
 window.title("Morse Code Translator")
