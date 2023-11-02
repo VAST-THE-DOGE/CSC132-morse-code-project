@@ -132,7 +132,7 @@ class MainGUI(Frame):
                             sleep(SEND_SPEED_4)
                         else:
                             if DEBUG: print("--UNKNOWN_INPUT--"), print("'{}' WILL NOT SEND!".format(value))
-                    else: self.OWtext.set("!!!Unable to send!!! it would take too long to send this!")
+                else: self.OWtext.set("!!!Unable to send!!! it would take too long to send this!")
             else:
                 if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
                 self.OWtext.set("translating: " + str(sendInfo) + "\n sending: " + str(newSendInfo) + "\n GPIO IS OFF! THIS WILL NOT SEND!!!")
