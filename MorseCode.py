@@ -2,18 +2,25 @@
 from time import sleep, time
 from tkinter import *
 from os import _exit, system
+from pygame import mixer
 ##################################################################
 #Settings
+ADMIN = True
 FULLSCREEN = True
 DEBUG = False
 SHUTDOWN = False
 SEND_SPEED = 0.2 #in seconds# the tested min is 0.1 or so
+MAX_SEND_TIME = 30 #in seconds# it uses the formula "(length of list to send) multiplied by (SEND_SPEED)" I would use a number that is half as much as you want the max to be
 RECORD_IDLE_TIME = 5 #in seconds#
 RECORD_OFF_TIME = 0.001 #in seconds#
+EXTRA_EFFECTS = True
 #GPIO Stuff
 SENSOR = 0 #GPIO IN PIN
 RED_LED = 0 #GPIO OUT PIN 1
 IR_LED = 0 #GPIO OUT PIN 2
+#sound file for Extra Effects
+mixer.init()
+sound = mixer.Sound("beep.wav")
 ###################################################################
 try: #try to enable the gpio to see if you are on the RPi or not
     if DEBUG: print("--setupGPIO--"), print("--START--")
@@ -67,9 +74,10 @@ class MainGUI(Frame):
         self.uiw = Entry(self, bg="white", font=("TexGyreAdventor", 45))
         self.uiw.grid(row=1*height, column=1*width, columnspan=6*width, sticky=E+W+N+S, padx=5, pady=5)
         #output window
-        self.ow = Label(self, text='Type "c/help" without the quotation marks in the translation area \nand click send for a list of commands', anchor=N+W, bg="white", height=1, font=("TexGyreAdventor", 25))
+        self.OWtext = StringVar()
+        self.ow = Label(self, textvariable=self.OWtext, anchor=N+W, bg="white", height=1, font=("TexGyreAdventor", 25))
         self.ow.grid(row=3*height, column=1*width, rowspan=2*height, columnspan=5*width, sticky=E+W+N+S, padx=5, pady=5)
-
+        self.OWtext.set('Type "c/help" without the quotation marks in the translation area \nand click send for a list of commands')
         ###############
         #quick buttons#
         ###############
@@ -93,36 +101,41 @@ class MainGUI(Frame):
         else: #if a command was not used.
             newSendInfo = ENGtoMC(sendInfo)
             if GPIO_ACTIVE:
-                if DEBUG: print("---GPIO_IS_ON---")
-                self.ow.config(text=("translating: " + sendInfo + "\n sending: " + newSendInfo))
-                newSendInfo = newSendInfo.split()
-                if DEBUG: print(newSendInfo)
-                SEND_SPEED_3, SEND_SPEED_2, SEND_SPEED_4 = (3 * SEND_SPEED), (2 * SEND_SPEED), (4 * SEND_SPEED)
-                for value in newSendInfo:
-    #A dot lasts for one second.
-    #A dash lasts for three seconds. 
-    #The space between dots and dashes that are part of the same letter is one second.
-    #The space between different letters is three seconds.
-    #The space between different words is seven seconds.
-                    if value == ".":
-                        GPIO.output(RED_LED, True), GPIO.output(IR_LED, True)
-                        sleep(SEND_SPEED)
-                        GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
-                        sleep(SEND_SPEED)
-                    elif value == "-":
-                        GPIO.output(RED_LED, True), GPIO.output(IR_LED, True)
-                        sleep(SEND_SPEED_3)
-                        GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
-                        sleep(SEND_SPEED)
-                    elif value == "/": #end of - or . is 1 second + 2 = 3
-                        sleep(SEND_SPEED_2)
-                    elif value == "^": #end of - or . is 1 second + 4 + 2 seconds from the / after = 7
-                        sleep(SEND_SPEED_4)
-                    else:
-                        if DEBUG: print("--UNKNOWN_INPUT--"), print("'{}' WILL NOT SEND!")
+                if (len(newSendInfo.split()) * SEND_SPEED) < MAX_SEND_TIME: #guess how long it would take to send and make sure it is not a crazy number.
+                    if DEBUG: print("---GPIO_IS_ON---")
+                    self.OWtext.set("translating: " + str(sendInfo) + "\n sending: " + str(newSendInfo))
+                    if DEBUG: print(newSendInfo)
+                    SEND_SPEED_3, SEND_SPEED_2, SEND_SPEED_4 = (3 * SEND_SPEED), (2 * SEND_SPEED), (4 * SEND_SPEED)
+                    for value in newSendInfo.split():
+        #A dot lasts for one second.
+        #A dash lasts for three seconds. 
+        #The space between dots and dashes that are part of the same letter is one second.
+        #The space between different letters is three seconds.
+        #The space between different words is seven seconds.
+                        if value == ".":
+                            if EXTRA_EFFECTS: sound.play(-1)
+                            GPIO.output(RED_LED, True), GPIO.output(IR_LED, True)
+                            sleep(SEND_SPEED)
+                            if EXTRA_EFFECTS: sound.stop()
+                            GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
+                            sleep(SEND_SPEED)
+                        elif value == "-":
+                            if EXTRA_EFFECTS: sound.play(-1)
+                            GPIO.output(RED_LED, True), GPIO.output(IR_LED, True)
+                            sleep(SEND_SPEED_3)
+                            if EXTRA_EFFECTS: sound.stop()
+                            GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
+                            sleep(SEND_SPEED)
+                        elif value == "/": #end of - or . is 1 second + 2 = 3
+                            sleep(SEND_SPEED_2)
+                        elif value == "^": #end of - or . is 1 second + 4 + 2 seconds from the / after = 7
+                            sleep(SEND_SPEED_4)
+                        else:
+                            if DEBUG: print("--UNKNOWN_INPUT--"), print("'{}' WILL NOT SEND!".format(value))
+                    else: self.OWtext.set("!!!Unable to send!!! it would take too long to send this!")
             else:
                 if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
-                self.ow.config(text=("translating: " + sendInfo + "\n sending: " + newSendInfo + "\n GPIO IS OFF! THIS WILL NOT SEND!!!"))
+                self.OWtext.set("translating: " + str(sendInfo) + "\n sending: " + str(newSendInfo) + "\n GPIO IS OFF! THIS WILL NOT SEND!!!")
         if DEBUG: print("----END----"), print("----send----")
 
     def record(self):
@@ -133,7 +146,7 @@ class MainGUI(Frame):
             StartTime = time()
             #wait until there is IR light detected
             while not GPIO.input(SENSOR):
-                if time() - StartTime >= RECORD_IDLE_TIME: return "No Recording"
+                if time() - StartTime >= RECORD_IDLE_TIME: return [0]
             #start recording
             while True:
                 #get ON/OFF time
@@ -146,43 +159,60 @@ class MainGUI(Frame):
              
         else:
             if DEBUG: print("---!!!GPIO_IS_OFF!!!---")
-            self.ow.config(text=("GPIO IS OFF! RECORDING IS OFFLINE!!!"))
+            self.OWtext.set(("GPIO IS OFF! RECORDING IS OFFLINE!!!"))
             return "GPIO IS OFF! RECORDING IS OFFLINE!!!"
 
     def recordON(self):
         StartTime = time()
+        if EXTRA_EFFECTS: sound.play(-1), GPIO.output(RED_LED, True), GPIO.output(IR_LED, True)
         while True:
             if not GPIO.input(SENSOR):
                 startOFF = time()
                 while not GPIO.input(SENSOR):
-                    if time() - startOFF > RECORD_OFF_TIME: return ((time() - StartTime) - RECORD_OFF_TIME)
+                    if time() - startOFF > RECORD_OFF_TIME: sound.stop(); return ((time() - StartTime) - RECORD_OFF_TIME)
     def recordOFF(self):
         StartTime = time()
+        if EXTRA_EFFECTS: sound.stop(), GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
         while not GPIO.input(SENSOR):
             if time() - StartTime >= RECORD_IDLE_TIME: return -RECORD_IDLE_TIME
         return -((time() - StartTime) + RECORD_OFF_TIME)
     
     def recordEND(self, string):
-        if string != "GPIO IS OFF! RECORDING IS OFFLINE!!!" and string != "No Recording":
-            self.ow.config(text=("STRING: {}".format(MCtoENG(string))))
-        else: self.ow.config(text=(string))
+        self.OWtext.set(("STRING: {}".format(MCtoENG(string))))
+        self.ow.config(text=(string)), sound.stop(), GPIO.output(RED_LED, False), GPIO.output(IR_LED, False)
         if DEBUG: print("----END----"), print("----record----")
 
     def command(self, line):
-        if line[1] == "help": out = '"c/fullscreen/[True or False]","c/quit",\n"c/debug/[True or False]","c/sendspeed/[number > 0]",\n"c/idletime/[number > 0]","c/sendspeed/[number > 0]",\n"c/offtime/[number > 0]"'
+        global ADMIN
+        if line[1] == "help": out = '"c/fullscreen/[True or False]","c/quit",\n"c/debug/[True or False]","c/sendspeed/[number > 0]",\n"c/idletime/[number > 0]","c/sendspeed/[number > 0]",\n"c/offtime/[number > 0]","c/extra/[True or False]"'
         elif line[1] == "fullscreen":
-            try:
-                window.attributes("-fullscreen", (line[2].replace("[","")).replace("]",""))
-                out = "Set fullscreen to {}".format((line[2].replace("[","")).replace("]",""))
-            except: out = "!!!Error Getting True/False Value!!!"
+            if ADMIN == True:
+                try:
+                    window.attributes("-fullscreen", (line[2].replace("[","")).replace("]",""))
+                    out = "Set fullscreen to {}".format((line[2].replace("[","")).replace("]",""))
+                except: out = "!!!Error Getting True/False Value!!!"
+            else: out = "!admin command was not executed!"
         elif line[1] == "quit":
-            out = "Quiting the Program"
-            _exit(0)
+            if ADMIN == True:
+                out = "Quiting the Program"
+                _exit(0)
         elif line[1] == "debug":
+            if ADMIN == True:
+                try:
+                    global DEBUG
+                    DEBUG = ((line[2].replace("[","")).replace("]",""))
+                    out = "Set debug to {}".format(DEBUG)
+                except: out = "!!!Error Getting True/False Value!!!"
+            else: out = "!admin command was not executed!"
+        elif line[1] == "admin":
             try:
-                global DEBUG
-                DEBUG = ((line[2].replace("[","")).replace("]",""))
-                out = "Set debug to {}".format(DEBUG)
+                ADMIN = ((line[2].replace("[","")).replace("]",""))
+                out = "Set admin to {}".format(ADMIN)
+            except: out = "!!!Error Getting True/False Value!!!"
+        elif line[1] == "extra":
+            try:
+                EXTRA_EFFECTS = ((line[2].replace("[","")).replace("]",""))
+                out = "Set extra effects to {}".format(EXTRA_EFFECTS)
             except: out = "!!!Error Getting True/False Value!!!"
         elif line[1] == "sendspeed":
             try:
@@ -203,45 +233,49 @@ class MainGUI(Frame):
                 else: out = "!!{} is NOT above 0!!".format(value)
             except: out = "!!!Error Getting Float or Integer Value!!!"
         elif line[1] == "offtime":
-            try:
-                global RECORD_OFF_TIME
-                value = float((line[2].replace("[","")).replace("]",""))
-                if value > 0:
-                    RECORD_OFF_TIME = value
-                    out = "Set recording off time to {}".format(value)
-                else: out = "!!{} is NOT above 0!!".format(value)
-            except: out = "!!!Error Getting Float or Integer Value!!!"
+            if ADMIN == True:
+                try:
+                    global RECORD_OFF_TIME
+                    value = float((line[2].replace("[","")).replace("]",""))
+                    if value > 0:
+                        RECORD_OFF_TIME = value
+                        out = "Set recording off time to {}".format(value)
+                    else: out = "!!{} is NOT above 0!!".format(value)
+                except: out = "!!!Error Getting Float or Integer Value!!!"
+            else: out = "!admin command was not executed!"
         else: out = '!!Invalid Command!! Use "c/help"'
         print(out)
-        self.ow.config(text=out)
+        self.OWtext.set(out)
 
 def TIMEtoMC(times):
     if DEBUG: print("times:", times)
+    string = ""
+    SendSpeed = SEND_SPEED
+    i = 0
     for index in range(0, len(times), 2):
         if times[index] > 0:
             if DEBUG: print("record speed input:", times[index], times[index + 1])
-            SendSpeed = recordSpeedFind(times[index], times[index + 1])
-            if SendSpeed != None: print("FOUND:", SendSpeed); break #if the string is not ""
-    string = ""
+            temp = recordSpeedFind(times[index], times[index + 1])
+            if temp != 0: SendSpeed += temp; i += 1
     for value in times:
-        string += recordSymbolFind(value, times)
+        string += recordSymbolFind(value, SendSpeed)
     return string
 
 def recordSpeedFind(CurrentTime, Time):
     TimeDif = CurrentTime / Time
     if  TimeDif > -0.23809523809523809 and TimeDif <= 0:#.to// #-0.14285714285714285
-        return ". / ^ / ", (Time * -1)
+        return (Time * -1)
     elif  TimeDif > -0.38095238095238094 and TimeDif <= -0.23809523809523809: #.to/ -0.33333333333333333
-        return ". / ", CurrentTime
+        return CurrentTime
     elif  TimeDif > -0.714285714285714275 and TimeDif <= -0.38095238095238094:#-to// #-0.42857142857142855
-        return "- / ^ / ", -Time
+        return -Time
     elif  TimeDif > -2 and TimeDif <= -0.714285714285714275: #.to# or -to/ -1.0 ######
-        return "", None
+        return 0
     elif  TimeDif > -4 and TimeDif <= -2:#-to# -3.0
-        return "- ", -Time
+        return -Time
     else: #error
         print("!!!finding_error!!!")
-        return "", None
+        return 0
 
 def recordSymbolFind(Time, SendSpeed):
     Time /= SendSpeed
@@ -287,14 +321,19 @@ def MCtoENG(string):
     return string
 
 def end():
-    if DEBUG: print("-----END-----"), print("-----main-----")
-    window.attributes("-fullscreen", False)
-    if GPIO_ACTIVE and SHUTDOWN: system("sudo shutdown -h now")
-    _exit(0)
+    if ADMIN == True:
+        if DEBUG: print("-----END-----"), print("-----main-----")
+        window.attributes("-fullscreen", False)
+        if GPIO_ACTIVE and SHUTDOWN: system("sudo shutdown -h now")
+        _exit(0)
 
 if DEBUG: print("-----main-----"), print("-----START-----")
 window = Tk()
 window.title("Morse Code Translator")
+
+p = MainGUI(window)
+window.mainloop()
+if DEBUG: print("-----END-----"), print("-----main-----")
 
 p = MainGUI(window)
 window.mainloop()
