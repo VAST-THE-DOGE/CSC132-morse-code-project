@@ -252,11 +252,15 @@ def TIMEtoMC(times):
     string = ""
     SendSpeed = SEND_SPEED
     i = 0
-    for index in range(0, len(times), 2):
-        if times[index] > 0:
+    for index in range(0, len(times) - 1, 2):
+        if times[index] > 0: 
             if DEBUG: print("record speed input:", times[index], times[index + 1])
             temp = recordSpeedFind(times[index], times[index + 1])
-            if temp != 0: SendSpeed += temp; i += 1
+            if temp != 0:
+                SendSpeed += temp
+                i += 1
+    if i > 0: SendSpeed /= i
+    if SendSpeed == 0: SendSpeed = SEND_SPEED
     for value in times:
         string += recordSymbolFind(value, SendSpeed)
     return string
