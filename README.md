@@ -1,3 +1,5 @@
+![image](https://github.com/VAST-THE-DOGE/CSC132-morse-code-project/assets/145150405/e237e5e8-139f-4900-b5cb-cc9c64eb1781)
+
 # CSC132-morse-code-project
 
 #Setup#
